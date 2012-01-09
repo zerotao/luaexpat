@@ -356,7 +356,18 @@ macro (install_lua_module _name )
      include_directories ( ${LUA_INCLUDE_DIR} )
    
      add_library( ${_target} MODULE ${_MODULE_DEFAULT_ARGS})
-     target_link_libraries ( ${_target} ${LUA_LIBRARY} ${_MODULE_LINK} )
+
+
+     # do not link a static luacore against a module
+     if(APPLE)
+         set_target_properties(${_target} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+     endif()
+
+     # do NOT link modules against the lua core library it makes a hard
+     # forward dependency rather then a lazy backwards dependency (see:
+     # http://lua-users.org/wiki/BuildingModules (Do not Link Modules to the Lua Core Libraries)
+     target_link_libraries ( ${_target} ${_MODULE_LINK} )
+
      set_target_properties ( ${_target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${_module_path}" PREFIX "" OUTPUT_NAME "${_module_name}" )
      
      install ( TARGETS ${_target} DESTINATION ${INSTALL_CMOD}/${_module_path})
